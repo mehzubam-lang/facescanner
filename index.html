@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Face Scanner - Advanced Skin Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #003366 0%, #001a33 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #008B8B 0%, #005F73 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .tab-btn {
+            background: white;
+            color: #0097A7;
+            border: 2px solid #0097A7;
+            padding: 12px 30px;
+            font-size: 1em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .tab-btn:hover {
+            background: #E0F7FA;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #008B8B 0%, #005F73 100%);
+            color: white;
+        }
+
+        .section-content {
+            display: none;
+        }
+
+        .section-content.active {
+            display: block;
+        }
+
+        .upload-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 3px dashed #00BCD4;
+            border-radius: 15px;
+            padding: 60px 40px;
+            background: #E0F7FA;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #0097A7;
+            background: #B2EBF2;
+        }
+
+        .upload-area.dragover {
+            border-color: #006064;
+            background: #80DEEA;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            color: #0097A7;
+        }
+
+        .upload-area h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .upload-area p {
+            color: #666;
+            font-size: 1em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #008B8B 0%, #005F73 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 139, 139, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .preview-section {
+            display: none;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .preview-container {
+            display: inline-block;
+            position: relative;
+            max-width: 100%;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #00BCD4;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .health-score-container {
+            background: linear-gradient(135deg, #008B8B 0%, #005F73 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .health-score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: white;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .score-percentage {
+            font-size: 4em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #008B8B 0%, #005F73 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-label {
+            font-size: 1.2em;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+
+        .report-navigation {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            background: white;
+            color: #0097A7;
+            border: 2px solid #0097A7;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .page-btn:hover {
+            background: #E0F7FA;
+        }
+
+        .page-btn.active {
+            background: linear-gradient(135deg, #008B8B 0%, #005F73 100%);
+            color: white;
+            border-color: #008B8B;
+        }
+
+        .report-page {
+            display: none;
+        }
+
+        .report-page.active {
+            display: block;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 5px solid #0097A7;
+        }
+
+        .page-header h2 {
+            color: #003366;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+        }
+
+        .page-header p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .detail-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .detail-section h4 {
+            color: #0097A7;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #E0F7FA;
+        }
+
+        .routine-timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .routine-timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #B2EBF2;
+        }
+
+        .routine-step {
+            position: relative;
+            margin-bottom: 25px;
+            padding-left: 15px;
+        }
+
+        .routine-step::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 5px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #0097A7;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #0097A7;
+        }
+
+        .routine-step h5 {
+            color: #003366;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .ingredient-card {
+            background: #E0F7FA;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #0097A7;
+        }
+
+        .ingredient-card h5 {
+            color: #003366;
+            margin-bottom: 8px;
+        }
+
+        .ingredient-card p {
+            color: #555;
+            margin-bottom: 5px;
+            font-size: 0.95em;
+        }
+
+        .progress-bar {
+            background: #E0F7FA;
+            height: 25px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #008B8B 0%, #00BCD4 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.85em;
+            transition: width 1s ease;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-box {
+            background: #E0F7FA;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #0097A7;
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .tip-box {
+            background: #FFF9C4;
+            border-left: 4px solid #FFA000;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .tip-box strong {
+            color: #F57C00;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: #0097A7;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #006064;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-card {
+            background: #E0F7FA;
+            border-left: 4px solid #0097A7;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+
+        .result-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .severity-badge {
+            font-size: 0.75em;
+            padding: 4px 12px;
+            border-radius: 15px;
+            margin-left: 10px;
+            color: white;
+            font-weight: normal;
+        }
+
+        .severity-mild { background: #4CAF50; }
+        .severity-moderate { background: #FF9800; }
+        .severity-severe { background: #F44336; }
+
+        .problem-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .problem-item p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .solution-list {
+            background: #B2EBF2;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .solution-list h5 {
+            color: #006064;
+            margin-bottom: 10px;
+        }
+
+        .solution-list ul {
+            list-style-position: inside;
+            color: #555;
+        }
+
+        .solution-list li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #008B8B 0%, #005F73 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .summary-box h3 {
+            margin-bottom: 15px;
+        }
+
+        .summary-box p {
+            line-height: 1.8;
+            font-size: 1.05em;
+        }
+
+        .disclaimer {
+            background: #E0F7FA;
+            border: 1px solid #0097A7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #003366;
+        }
+
+        .disclaimer strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .reset-btn {
+            background: #6c757d;
+            margin-top: 20px;
+        }
+
+        .camera-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .video-container {
+            position: relative;
+            max-width: 640px;
+            margin: 0 auto 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        #videoElement {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        #canvasElement {
+            display: none;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .camera-info {
+            background: #B2EBF2;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #003366;
+            font-size: 0.95em;
+        }
+
+        .skin-tone-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .upload-area {
+                padding: 40px 20px;
+            }
+
+            .camera-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .tab-buttons {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 AI Face Scanner</h1>
+            <p>Advanced Skin Analysis & Personalized Solutions</p>
+            <p style="font-size: 0.9em; margin-top: 10px; opacity: 0.85;">Real-Time Image Analysis with Acne & Skin Tone Detection</p>
+        </div>
+
+        <div class="content">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('upload')">📤 Upload Photo</button>
+                <button class="tab-btn" onclick="switchTab('camera')">📷 Live Camera</button>
+            </div>
+
+            <div class="section-content active" id="uploadContent">
+                <div class="upload-section" id="uploadSection">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📸</div>
+                        <h3>Upload Your Face Photo</h3>
+                        <p>Click here or drag & drop your image</p>
+                        <p style="font-size: 0.9em; margin-top: 10px; color: #999;">Supported: JPG, PNG, WEBP (max 5MB)</p>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*" />
+                    <button class="btn" id="analyzeBtn" disabled>Analyze Skin</button>
+                </div>
+            </div>
+
+            <div class="section-content" id="cameraContent">
+                <div class="camera-section">
+                    <div class="camera-info">
+                        📸 Position your face in the camera frame and click "Capture Photo" to analyze your skin
+                    </div>
+                    <div class="video-container" id="videoContainer" style="display: none;">
+                        <video id="videoElement" autoplay playsinline></video>
+                    </div>
+                    <canvas id="canvasElement"></canvas>
+                    <div class="camera-controls">
+                        <button class="btn" id="startCameraBtn">Start Camera</button>
+                        <button class="btn" id="captureBtn" style="display: none;">Capture Photo</button>
+                        <button class="btn reset-btn" id="stopCameraBtn" style="display: none;">Stop Camera</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-section" id="previewSection">
+                <h3 style="margin-bottom: 15px; color: #333;">Preview:</h3>
+                <div class="preview-container">
+                    <img id="imagePreview" class="image-preview" alt="Preview" />
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="color: #0097A7; font-size: 1.1em;">Analyzing your skin... Please wait</p>
+            </div>
+
+            <div class="results-section" id="resultsSection">
+                <div class="health-score-container">
+                    <h2>Overall Skin Health Score</h2>
+                    <div class="health-score-circle">
+                        <div class="score-percentage" id="healthScore">0%</div>
+                    </div>
+                    <p class="score-label" id="scoreLabel">Calculating...</p>
+                </div>
+
+                <div class="report-navigation">
+                    <button class="page-btn active" onclick="showPage(1)">📊 Page 1: Overview</button>
+                    <button class="page-btn" onclick="showPage(2)">🔍 Page 2: Issues Detected</button>
+                    <button class="page-btn" onclick="showPage(3)">💊 Page 3: Solutions</button>
+                    <button class="page-btn" onclick="showPage(4)">📅 Page 4: Routine</button>
+                    <button class="page-btn" onclick="showPage(5)">📈 Page 5: Progress Plan</button>
+                </div>
+
+                <div class="report-page active" id="page1">
+                    <div class="page-header">
+                        <h2>📊 Page 1: Analysis Overview</h2>
+                        <p>Comprehensive analysis of your facial skin based on image scanning</p>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>📋 Summary</h4>
+                        <p id="summaryText"></p>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>📊 Skin Metrics</h4>
+                        <div class="metric-grid" id="metricsGrid"></div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>🎯 Key Findings</h4>
+                        <div id="keyFindings"></div>
+                    </div>
+                </div>
+
+                <div class="report-page" id="page2">
+                    <div class="page-header">
+                        <h2>🔍 Page 2: Detailed Issue Analysis</h2>
+                        <p>Comprehensive breakdown of all detected skin concerns</p>
+                    </div>
+                    <div id="issuesContainer"></div>
+                </div>
+
+                <div class="report-page" id="page3">
+                    <div class="page-header">
+                        <h2>💊 Page 3: Recommended Solutions</h2>
+                        <p>Personalized product recommendations and treatments</p>
+                    </div>
+                    <div id="solutionsContainer"></div>
+                </div>
+
+                <div class="report-page" id="page4">
+                    <div class="page-header">
+                        <h2>📅 Page 4: Your Personalized Skincare Routine</h2>
+                        <p>Step-by-step daily and weekly routines for optimal results</p>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>🌅 Morning Routine</h4>
+                        <div class="routine-timeline" id="morningRoutine"></div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>🌙 Evening Routine</h4>
+                        <div class="routine-timeline" id="eveningRoutine"></div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>📆 Weekly Treatments</h4>
+                        <div id="weeklyRoutine"></div>
+                    </div>
+                </div>
+
+                <div class="report-page" id="page5">
+                    <div class="page-header">
+                        <h2>📈 Page 5: Progress Timeline & Expectations</h2>
+                        <p>What to expect and when to see results</p>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>⏰ Expected Timeline</h4>
+                        <div id="timelineContent"></div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>📝 Progress Tracking Tips</h4>
+                        <div id="trackingTips"></div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>⚠️ Important Reminders</h4>
+                        <div id="importantReminders"></div>
+                    </div>
+                </div>
+
+                <div class="navigation-buttons">
+                    <button class="nav-btn" id="prevBtn" onclick="previousPage()" disabled>← Previous</button>
+                    <button class="nav-btn" id="nextBtn" onclick="nextPage()">Next →</button>
+                </div>
+
+                <div class="disclaimer">
+                    <strong>⚠️ Medical Disclaimer:</strong>
+                    This AI analysis is for informational purposes only and should not replace professional medical advice. For serious skin concerns, please consult a dermatologist.
+                </div>
+                <button class="btn reset-btn" id="resetBtn">Scan Another Face</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const totalPages = 5;
+
+        window.showPage = function(pageNum) {
+            currentPage = pageNum;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                document.getElementById(`page${i}`).classList.remove('active');
+            }
+            
+            document.getElementById(`page${pageNum}`).classList.add('active');
+            
+            document.querySelectorAll('.page-btn').forEach((btn, index) => {
+                btn.classList.toggle('active', index + 1 === pageNum);
+            });
+            
+            document.getElementById('prevBtn').disabled = pageNum === 1;
+            document.getElementById('nextBtn').disabled = pageNum === totalPages;
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.nextPage = function() {
+            if (currentPage < totalPages) {
+                showPage(currentPage + 1);
+            }
+        };
+
+        window.previousPage = function() {
+            if (currentPage > 1) {
+                showPage(currentPage - 1);
+            }
+        };
+
+        console.log('Face Scanner Initialized');
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const previewSection = document.getElementById('previewSection');
+        const imagePreview = document.getElementById('imagePreview');
+        const loading = document.getElementById('loading');
+        const resultsSection = document.getElementById('resultsSection');
+        const uploadSection = document.getElementById('uploadSection');
+        const resetBtn = document.getElementById('resetBtn');
+        
+        const videoElement = document.getElementById('videoElement');
+        const canvasElement = document.getElementById('canvasElement');
+        const videoContainer = document.getElementById('videoContainer');
+        const startCameraBtn = document.getElementById('startCameraBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const stopCameraBtn = document.getElementById('stopCameraBtn');
+        
+        let selectedFile = null;
+        let stream = null;
+
+        window.switchTab = function(tab) {
+            console.log('Switching to tab:', tab);
+            const uploadContent = document.getElementById('uploadContent');
+            const cameraContent = document.getElementById('cameraContent');
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            
+            tabBtns.forEach(btn => btn.classList.remove('active'));
+            
+            if (tab === 'upload') {
+                uploadContent.classList.add('active');
+                cameraContent.classList.remove('active');
+                tabBtns[0].classList.add('active');
+                stopCamera();
+            } else {
+                uploadContent.classList.remove('active');
+                cameraContent.classList.add('active');
+                tabBtns[1].classList.add('active');
+            }
+            
+            resetStates();
+        };
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            handleFile(file);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            handleFile(file);
+        });
+
+        function handleFile(file) {
+            console.log('File selected:', file);
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert('Please upload an image file');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                return;
+            }
+
+            selectedFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                console.log('Image loaded');
+                imagePreview.src = e.target.result;
+                imagePreview.onload = () => {
+                    previewSection.style.display = 'block';
+                    analyzeBtn.disabled = false;
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        analyzeBtn.addEventListener('click', async () => {
+            console.log('Analyze button clicked');
+            if (!selectedFile) {
+                console.error('No file selected');
+                return;
+            }
+
+            loading.style.display = 'block';
+            uploadSection.style.display = 'none';
+            previewSection.style.display = 'none';
+            resultsSection.style.display = 'none';
+
+            try {
+                await analyzeFace(selectedFile);
+            } catch (error) {
+                console.error('Analysis error:', error);
+                alert('Error analyzing image: ' + error.message);
+                loading.style.display = 'none';
+                uploadSection.style.display = 'block';
+                previewSection.style.display = 'block';
+            }
+        });
+
+        startCameraBtn.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'user',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+                videoElement.srcObject = stream;
+                videoContainer.style.display = 'block';
+                startCameraBtn.style.display = 'none';
+                captureBtn.style.display = 'inline-block';
+                stopCameraBtn.style.display = 'inline-block';
+            } catch (error) {
+                alert('Error accessing camera: ' + error.message);
+            }
+        });
+
+        captureBtn.addEventListener('click', () => {
+            const context = canvasElement.getContext('2d');
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            context.drawImage(videoElement, 0, 0);
+            
+            canvasElement.toBlob((blob) => {
+                selectedFile = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+                
+                const url = URL.createObjectURL(blob);
+                imagePreview.src = url;
+                imagePreview.onload = () => {
+                    previewSection.style.display = 'block';
+                };
+                
+                stopCamera();
+                analyzeCapturedImage();
+            }, 'image/jpeg', 0.95);
+        });
+
+        stopCameraBtn.addEventListener('click', stopCamera);
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            videoContainer.style.display = 'none';
+            startCameraBtn.style.display = 'inline-block';
+            captureBtn.style.display = 'none';
+            stopCameraBtn.style.display = 'none';
+        }
+
+        async function analyzeCapturedImage() {
+            if (!selectedFile) return;
+
+            loading.style.display = 'block';
+            document.querySelector('.camera-section').style.display = 'none';
+            previewSection.style.display = 'none';
+            resultsSection.style.display = 'none';
+
+            try {
+                await analyzeFace(selectedFile);
+            } catch (error) {
+                alert('Error analyzing image: ' + error.message);
+                loading.style.display = 'none';
+                document.querySelector('.camera-section').style.display = 'block';
+                previewSection.style.display = 'block';
+            }
+        }
+
+        function resetStates() {
+            selectedFile = null;
+            fileInput.value = '';
+            imagePreview.src = '';
+            previewSection.style.display = 'none';
+            resultsSection.style.display = 'none';
+            loading.style.display = 'none';
+            analyzeBtn.disabled = true;
+        }
+
+        resetBtn.addEventListener('click', () => {
+            resetStates();
+            const activeTab = document.querySelector('.tab-btn.active');
+            if (activeTab.textContent.includes('Upload')) {
+                uploadSection.style.display = 'block';
+            } else {
+                document.querySelector('.camera-section').style.display = 'block';
+            }
+        });
+
+        async function analyzeFace(file) {
+            console.log('Starting face analysis...');
+            
+            try {
+                const base64 = await fileToBase64(file);
+                console.log('Image converted to base64');
+                
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                const imageAnalysis = await analyzeImageLocally(base64);
+                console.log('Image analysis complete:', imageAnalysis);
+                
+                const analysisData = generateSkinAnalysis(imageAnalysis);
+                console.log('Skin analysis generated:', analysisData);
+                
+                displayResults(analysisData);
+                console.log('Results displayed');
+            } catch (error) {
+                console.error('Error in analyzeFace:', error);
+                throw error;
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function analyzeImageLocally(base64) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const pixels = imageData.data;
+                        
+                        let totalR = 0, totalG = 0, totalB = 0, totalBrightness = 0;
+                        let darkPixels = 0, brightPixels = 0, redPixels = 0;
+                        let varianceSum = 0, acnePixels = 0;
+                        const pixelCount = pixels.length / 4;
+                        
+                        // First pass - collect basic stats
+                        for (let i = 0; i < pixels.length; i += 4) {
+                            const r = pixels[i];
+                            const g = pixels[i + 1];
+                            const b = pixels[i + 2];
+                            const brightness = (r + g + b) / 3;
+                            
+                            totalR += r;
+                            totalG += g;
+                            totalB += b;
+                            totalBrightness += brightness;
+                            
+                            if (brightness < 80) darkPixels++;
+                            if (brightness > 200) brightPixels++;
+                            if (r > g + 20 && r > b + 20) redPixels++;
+                        }
+                        
+                        const avgR = totalR / pixelCount;
+                        const avgG = totalG / pixelCount;
+                        const avgB = totalB / pixelCount;
+                        const avgBrightness = totalBrightness / pixelCount;
+                        
+                        // Second pass - detect acne (texture variation and redness)
+                        for (let i = 0; i < pixels.length; i += 4) {
+                            const r = pixels[i];
+                            const g = pixels[i + 1];
+                            const b = pixels[i + 2];
+                            const brightness = (r + g + b) / 3;
+                            
+                            // Calculate variance from average
+                            varianceSum += Math.pow(brightness - avgBrightness, 2);
+                            
+                            // Acne detection: look for red spots with moderate brightness
+                            const redness = r - ((g + b) / 2);
+                            if (redness > 15 && brightness > 60 && brightness < 180) {
+                                acnePixels++;
+                            }
+                        }
+                        
+                        const textureVariance = Math.sqrt(varianceSum / pixelCount);
+                        
+                        resolve({
+                            brightness: avgBrightness,
+                            redness: avgR - avgG,
+                            darkPixelRatio: darkPixels / pixelCount,
+                            brightPixelRatio: brightPixels / pixelCount,
+                            redPixelRatio: redPixels / pixelCount,
+                            acnePixelRatio: acnePixels / pixelCount,
+                            textureVariance: textureVariance,
+                            avgR: avgR,
+                            avgG: avgG,
+                            avgB: avgB
+                        });
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                img.onerror = reject;
+                img.src = base64;
+            });
+        }
+
+        function getSkinTone(r, g, b) {
+            const brightness = (r + g + b) / 3;
+            
+            if (brightness < 85) return { name: 'Very Dark', color: '#3d2817', category: 'VI' };
+            if (brightness < 120) return { name: 'Dark', color: '#6b4423', category: 'V' };
+            if (brightness < 155) return { name: 'Medium-Dark', color: '#936037', category: 'IV' };
+            if (brightness < 190) return { name: 'Medium', color: '#c68642', category: 'III' };
+            if (brightness < 220) return { name: 'Fair', color: '#e0ac69', category: 'II' };
+            return { name: 'Very Fair', color: '#f1c27d', category: 'I' };
+        }
+
+        function generateSkinAnalysis(data) {
+            const { brightness, redness, darkPixelRatio, brightPixelRatio, redPixelRatio, acnePixelRatio, textureVariance, avgR, avgG, avgB } = data;
+            const problems = [];
+            
+            // Skin Tone Detection
+            const skinTone = getSkinTone(avgR, avgG, avgB);
+            problems.push({
+                name: `🎨 Skin Tone: ${skinTone.name}`,
+                description: `Your skin tone is classified as Fitzpatrick Type ${skinTone.category} (${skinTone.name}). RGB values: R:${Math.round(avgR)}, G:${Math.round(avgG)}, B:${Math.round(avgB)}`,
+                severity: 'mild',
+                skinTone: skinTone,
+                solutions: [
+                    `Choose foundation shade matching ${skinTone.name} tones`,
+                    brightness < 155 ? 'Use SPF 30-50 to prevent hyperpigmentation' : 'Use SPF 50+ for lighter skin protection',
+                    brightness < 120 ? 'Look for products with niacinamide to even skin tone' : 'Use vitamin C for brightness maintenance',
+                    'Consult a dermatologist for personalized skincare for your skin type'
+                ]
+            });
+
+            // ENHANCED ACNE DETECTION
+            if (acnePixelRatio > 0.08 || textureVariance > 45) {
+                problems.push({
+                    name: "❌ ACNE DETECTED - Moderate to Severe",
+                    description: `Acne analysis: ${(acnePixelRatio * 100).toFixed(2)}% acne pixels detected. Texture variance: ${textureVariance.toFixed(1)} (high irregularity indicates active breakouts, inflammation, or scarring).`,
+                    severity: "severe",
+                    solutions: [
+                        "Use benzoyl peroxide 2.5-5% spot treatment on active pimples",
+                        "Apply salicylic acid 2% cleanser twice daily",
+                        "Use oil-free, non-comedogenic products only",
+                        "Apply niacinamide 5-10% serum to reduce inflammation",
+                        "Retinol 0.025-0.1% nightly for cell turnover",
+                        "Consider seeing a dermatologist for prescription treatment",
+                        "Avoid touching face or picking at acne",
+                        "Change pillowcase every 2-3 days",
+                        "Use clay mask with sulfur 2x weekly",
+                        "Reduce dairy and high-glycemic foods"
+                    ]
+                });
+            } else if (acnePixelRatio > 0.04 || textureVariance > 35) {
+                problems.push({
+                    name: "⚠️ MILD ACNE DETECTED",
+                    description: `Acne analysis: ${(acnePixelRatio * 100).toFixed(2)}% acne pixels detected. Some breakouts or blemishes present.`,
+                    severity: "moderate",
+                    solutions: [
+                        "Use salicylic acid 2% cleanser daily",
+                        "Apply benzoyl peroxide 2.5% on spots as needed",
+                        "Use oil-free moisturizer",
+                        "Spot treat with tea tree oil",
+                        "Avoid heavy makeup - use non-comedogenic",
+                        "Wash face after sweating",
+                        "Exfoliate gently 2x weekly"
+                    ]
+                });
+            } else if (acnePixelRatio > 0.02) {
+                problems.push({
+                    name: "💡 Occasional Breakouts",
+                    description: `Very low acne detection (${(acnePixelRatio * 100).toFixed(2)}%). Minor blemishes may be present.`,
+                    severity: "mild",
+                    solutions: [
+                        "Maintain gentle cleansing routine",
+                        "Spot treat occasional pimples",
+                        "Keep skin balanced and hydrated"
+                    ]
+                });
+            } else {
+                problems.push({
+                    name: "✅ Clear Skin - No Acne Detected",
+                    description: `Excellent! No significant acne detected (${(acnePixelRatio * 100).toFixed(2)}% acne pixels).`,
+                    severity: "mild",
+                    solutions: [
+                        "Maintain your current routine",
+                        "Continue using non-comedogenic products",
+                        "Keep up good skincare habits"
+                    ]
+                });
+            }
+
+            // Brightness Analysis
+            if (brightness < 100) {
+                problems.push({
+                    name: "❌ Dull Skin Detected",
+                    description: `Low brightness (${brightness.toFixed(0)}/255). Skin lacks radiance.`,
+                    severity: "moderate",
+                    solutions: [
+                        "Vitamin C serum 15% every morning",
+                        "Exfoliate with glycolic acid 8% 2-3x weekly",
+                        "Apply brightening masks twice weekly",
+                        "Drink 2-3 liters water daily",
+                        "Get 7-8 hours sleep"
+                    ]
+                });
+            } else if (brightness < 140) {
+                problems.push({
+                    name: "⚠️ Moderate Radiance",
+                    description: `Brightness: ${brightness.toFixed(0)}/255. Room for improvement.`,
+                    severity: "mild",
+                    solutions: [
+                        "Add vitamin C serum",
+                        "Gentle exfoliant 2x weekly",
+                        "SPF 50 daily",
+                        "Stay hydrated"
+                    ]
+                });
+            }
+            
+            // Redness Analysis
+            if (redPixelRatio > 0.25 || redness > 20) {
+                problems.push({
+                    name: "❌ Significant Redness/Inflammation",
+                    description: `High redness (${(redPixelRatio * 100).toFixed(1)}%). Inflammation or rosacea may be present.`,
+                    severity: "moderate",
+                    solutions: [
+                        "Fragrance-free products only",
+                        "Centella asiatica cream 2x daily",
+                        "Niacinamide 5% to calm skin",
+                        "Avoid hot water",
+                        "Cold green tea compresses",
+                        "See dermatologist if persists"
+                    ]
+                });
+            } else if (redPixelRatio > 0.15) {
+                problems.push({
+                    name: "⚠️ Mild Redness",
+                    description: `Some redness (${(redPixelRatio * 100).toFixed(1)}%).`,
+                    severity: "mild",
+                    solutions: [
+                        "Gentle pH-balanced cleanser",
+                        "Soothing aloe vera gel",
+                        "Avoid harsh exfoliants"
+                    ]
+                });
+            }
+            
+            // Dark Areas
+            if (darkPixelRatio > 0.2) {
+                problems.push({
+                    name: "❌ Dark Circles/Hyperpigmentation",
+                    description: `Dark areas: ${(darkPixelRatio * 100).toFixed(1)}%.`,
+                    severity: "moderate",
+                    solutions: [
+                        "Caffeine 2% eye cream twice daily",
+                        "Vitamin C serum for brightening",
+                        "Sleep with head elevated",
+                        "Color-correcting concealer",
+                        "Cold compress daily",
+                        "8+ hours sleep",
+                        "Reduce salt intake"
+                    ]
+                });
+            }
+            
+            // Oily Skin
+            if (brightPixelRatio > 0.25) {
+                problems.push({
+                    name: "❌ Excess Oil/Shine",
+                    description: `High shine (${(brightPixelRatio * 100).toFixed(1)}%).`,
+                    severity: "moderate",
+                    solutions: [
+                        "Oil-free mattifying moisturizer",
+                        "Salicylic acid 2% cleanser",
+                        "Niacinamide 10% for oil control",
+                        "Oil-absorbing papers",
+                        "Clay mask 2-3x weekly",
+                        "Gel-based products"
+                    ]
+                });
+            }
+            
+            // Dehydration
+            if (brightness < 120 || textureVariance > 40) {
+                problems.push({
+                    name: "❌ Dehydrated Skin",
+                    description: "Skin appears dehydrated with possible texture issues.",
+                    severity: "moderate",
+                    solutions: [
+                        "Layer: toner → serum → moisturizer → oil",
+                        "Ceramide moisturizer for barrier",
+                        "Hyaluronic acid on damp skin",
+                        "Use bedroom humidifier",
+                        "Drink 2-3L water daily",
+                        "Omega-3 supplements"
+                    ]
+                });
+            }
+            
+            // General Care
+            problems.push({
+                name: "💡 Anti-Aging & Protection",
+                description: "Essential preventive care.",
+                severity: "mild",
+                solutions: [
+                    "Daily SPF 50 sunscreen",
+                    "Retinol 0.025-0.1% nightly",
+                    "Hyaluronic acid for hydration",
+                    "Antioxidant serum",
+                    "Avoid smoking",
+                    "Facial massage 5-10 min daily"
+                ]
+            });
+            
+            const issueCount = problems.filter(p => p.name.includes('❌')).length;
+            const summary = `🔍 SCAN COMPLETE: ${problems.length} observations. Skin Tone: ${skinTone.name} (Type ${skinTone.category}). Acne: ${(acnePixelRatio * 100).toFixed(2)}%. Brightness: ${brightness.toFixed(0)}/255. ${issueCount} issues detected.`;
+            
+            return { 
+                summary, 
+                problems,
+                skinTone,
+                rawData: data
+            };
+        }
+
+        function displayResults(data) {
+            console.log('Displaying results...');
+            loading.style.display = 'none';
+
+            const healthScore = calculateHealthScore(data);
+            
+            const scoreElement = document.getElementById('healthScore');
+            const scoreLabel = document.getElementById('scoreLabel');
+            
+            let currentScore = 0;
+            const targetScore = healthScore;
+            const interval = setInterval(() => {
+                currentScore += 1;
+                scoreElement.textContent = currentScore + '%';
+                if (currentScore >= targetScore) {
+                    clearInterval(interval);
+                }
+            }, 20);
+            
+            if (healthScore >= 80) {
+                scoreLabel.textContent = '✅ Excellent - Your skin is in great condition!';
+            } else if (healthScore >= 60) {
+                scoreLabel.textContent = '👍 Good - Some minor improvements needed';
+            } else if (healthScore >= 40) {
+                scoreLabel.textContent = '⚠️ Fair - Several areas need attention';
+            } else {
+                scoreLabel.textContent = '❌ Needs Work - Focus on consistent care';
+            }
+
+            generatePage1(data, healthScore);
+            generatePage2(data);
+            generatePage3(data);
+            generatePage4(data);
+            generatePage5(data, healthScore);
+
+            resultsSection.style.display = 'block';
+            previewSection.style.display = 'block';
+            showPage(1);
+            console.log('Results displayed successfully');
+        }
+
+        function calculateHealthScore(data) {
+            const problems = data.problems;
+            let totalScore = 100;
+            
+            problems.forEach(problem => {
+                if (problem.name.includes('❌')) {
+                    if (problem.severity === 'severe') totalScore -= 15;
+                    else if (problem.severity === 'moderate') totalScore -= 10;
+                    else totalScore -= 5;
+                } else if (problem.name.includes('⚠️')) {
+                    totalScore -= 7;
+                } else if (problem.name.includes('✅')) {
+                    totalScore += 2;
+                }
+            });
+            
+            return Math.max(0, Math.min(100, Math.round(totalScore)));
+        }
+
+        function generatePage1(data, healthScore) {
+            document.getElementById('summaryText').textContent = data.summary;
+            
+            // Add skin tone display
+            if (data.skinTone) {
+                const skinToneHTML = `
+                    <div style="text-align: center; margin: 20px 0;">
+                        <h4 style="margin-bottom: 15px;">Your Skin Tone</h4>
+                        <div class="skin-tone-badge" style="background: ${data.skinTone.color};">
+                            ${data.skinTone.name} (Fitzpatrick Type ${data.skinTone.category})
+                        </div>
+                    </div>
+                `;
+                document.getElementById('summaryText').insertAdjacentHTML('afterend', skinToneHTML);
+            }
+            
+            const metricsGrid = document.getElementById('metricsGrid');
+            const brightness = data.rawData?.brightness || 0;
+            const redness = data.rawData?.redPixelRatio || 0;
+            const acne = data.rawData?.acnePixelRatio || 0;
+            
+            metricsGrid.innerHTML = `
+                <div class="metric-box">
+                    <div class="metric-label">Skin Brightness</div>
+                    <div class="metric-value">${Math.round(brightness)}</div>
+                    <div class="metric-label">out of 255</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Acne Detection</div>
+                    <div class="metric-value">${(acne * 100).toFixed(1)}%</div>
+                    <div class="metric-label">acne pixels found</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Redness Level</div>
+                    <div class="metric-value">${(redness * 100).toFixed(1)}%</div>
+                    <div class="metric-label">red pixels detected</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Health Score</div>
+                    <div class="metric-value">${healthScore}%</div>
+                    <div class="metric-label">overall rating</div>
+                </div>
+            `;
+            
+            const keyFindings = document.getElementById('keyFindings');
+            const issues = data.problems.filter(p => p.name.includes('❌') || p.name.includes('⚠️'));
+            const positives = data.problems.filter(p => p.name.includes('✅'));
+            
+            keyFindings.innerHTML = `
+                <div style="background: #FFEBEE; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <strong style="color: #C62828;">Issues Found: ${issues.length}</strong>
+                    <p style="color: #555; margin-top: 5px;">Areas requiring attention and treatment</p>
+                </div>
+                <div style="background: #E8F5E9; padding: 15px; border-radius: 8px;">
+                    <strong style="color: #2E7D32;">Positive Features: ${positives.length}</strong>
+                    <p style="color: #555; margin-top: 5px;">Healthy aspects to maintain</p>
+                </div>
+            `;
+        }
+
+        function generatePage2(data) {
+            const issuesContainer = document.getElementById('issuesContainer');
+            issuesContainer.innerHTML = '';
+            
+            data.problems.forEach((problem, index) => {
+                const severityClass = `severity-${problem.severity}`;
+                const badge = problem.severity ? `<span class="severity-badge ${severityClass}">${problem.severity}</span>` : '';
+                
+                const card = document.createElement('div');
+                card.className = 'detail-section';
+                card.innerHTML = `
+                    <h4>Issue ${index + 1}: ${problem.name} ${badge}</h4>
+                    <p style="color: #555; line-height: 1.8; margin-bottom: 15px;">${problem.description}</p>
+                    <div style="background: #E0F7FA; padding: 15px; border-radius: 8px;">
+                        <strong style="color: #00695C;">Why this happens:</strong>
+                        <p style="color: #555; margin-top: 5px;">
+                            ${getIssueExplanation(problem.name)}
+                        </p>
+                    </div>
+                `;
+                issuesContainer.appendChild(card);
+            });
+        }
+
+        function getIssueExplanation(issueName) {
+            const explanations = {
+                'ACNE': 'Acne occurs when hair follicles become clogged with oil and dead skin cells, leading to whiteheads, blackheads, or pimples. Caused by excess sebum, bacteria (P. acnes), hormones, diet, or stress.',
+                'Skin Tone': 'Skin tone is determined by melanin production. Different tones require different sun protection levels and may respond differently to skincare ingredients.',
+                'Dull': 'Dull skin results from dead cell buildup, dehydration, poor circulation, lack of sleep, or environmental stress.',
+                'Radiance': 'Good radiance indicates healthy cell turnover, proper hydration, and good blood circulation.',
+                'Redness': 'Redness can result from inflammation, broken capillaries, rosacea, allergic reactions, or damaged skin barrier.',
+                'Dark Circles': 'Caused by genetics, thin under-eye skin, sleep deprivation, allergies, or aging.',
+                'Oil': 'Excess sebum production triggered by genetics, hormones, dehydration, or wrong products.',
+                'Dehydrated': 'Occurs when skin lacks water due to weather, harsh cleansers, or damaged moisture barrier.',
+                'Anti-Aging': 'Aging accelerated by UV damage, free radicals, collagen loss, and lifestyle factors.'
+            };
+            
+            for (let key in explanations) {
+                if (issueName.includes(key)) return explanations[key];
+            }
+            return 'This condition develops due to various internal and external factors.';
+        }
+
+        function generatePage3(data) {
+            const solutionsContainer = document.getElementById('solutionsContainer');
+            solutionsContainer.innerHTML = '';
+            
+            const categories = {
+                'Cleansers': [],
+                'Serums & Treatments': [],
+                'Moisturizers': [],
+                'Sun Protection': [],
+                'Special Treatments': []
+            };
+            
+            data.problems.forEach(problem => {
+                problem.solutions.forEach(solution => {
+                    if (solution.toLowerCase().includes('cleanser') || solution.toLowerCase().includes('cleanse')) {
+                        categories['Cleansers'].push(solution);
+                    } else if (solution.toLowerCase().includes('serum') || solution.toLowerCase().includes('acid') || solution.toLowerCase().includes('retinol')) {
+                        categories['Serums & Treatments'].push(solution);
+                    } else if (solution.toLowerCase().includes('moisturizer') || solution.toLowerCase().includes('cream') || solution.toLowerCase().includes('hydrat')) {
+                        categories['Moisturizers'].push(solution);
+                    } else if (solution.toLowerCase().includes('spf') || solution.toLowerCase().includes('sunscreen')) {
+                        categories['Sun Protection'].push(solution);
+                    } else {
+                        categories['Special Treatments'].push(solution);
+                    }
+                });
+            });
+            
+            Object.keys(categories).forEach(category => {
+                if (categories[category].length > 0) {
+                    const uniqueSolutions = [...new Set(categories[category])];
+                    const section = document.createElement('div');
+                    section.className = 'detail-section';
+                    section.innerHTML = `
+                        <h4>${category}</h4>
+                        ${uniqueSolutions.slice(0, 6).map(sol => `
+                            <div class="ingredient-card">
+                                <p>• ${sol}</p>
+                            </div>
+                        `).join('')}
+                    `;
+                    solutionsContainer.appendChild(section);
+                }
+            });
+        }
+
+        function generatePage4(data) {
+            document.getElementById('morningRoutine').innerHTML = `
+                <div class="routine-step">
+                    <h5>Step 1: Cleanse</h5>
+                    <p>Gentle pH-balanced cleanser (5.5 pH) with lukewarm water</p>
+                </div>
+                <div class="routine-step">
+                    <h5>Step 2: Tone</h5>
+                    <p>Hydrating toner or essence</p>
+                </div>
+                <div class="routine-step">
+                    <h5>Step 3: Treat (Vitamin C)</h5>
+                    <p>Vitamin C serum 15-20% on damp skin</p>
+                </div>
+                <div class="routine-step">
+                    <h5>Step 4: Moisturize</h5>
+                    <p>Lightweight oil-free moisturizer with hyaluronic acid</p>
+                </div>
+                <div class="routine-step">
+                    <h5>Step 5: Protect</h5>
+                    <p>Broad-spectrum SPF 50 sunscreen (MOST IMPORTANT!)</p>
+                </div>
+            `;
+            
+            document.getElementById('eveningRoutine').innerHTML = `
+                <div class="routine-step">
+                    <h5>Step 1: Double Cleanse</h5>
+                    <p>First: Oil cleanser/micellar water<br>Second: Regular cleanser</p>
+                </div>
+                <div class="routine-step">
+                    <h5>Step 2: Exfoliate (2-3x weekly)</h5>
+                    <p>Chemical exfoliant: AHA/BHA or gentle scrub</p>
+                </div>
+                <div class="routine-step">
+                    <h5>Step 3: Tone</h5>
+                    <p>Hydrating or treatment toner</p>
+                </div>
+                <div class="routine-step">
+                    <h5>Step 4: Treat (Active Ingredients)</h5>
+                    <p>Serums: Niacinamide, retinol, or targeted treatments</p>
+                </div>
+                <div class="routine-step">
+                    <h5>Step 5: Eye Cream</h5>
+                    <p>Caffeine or peptide eye cream</p>
+                </div>
+                <div class="routine-step">
+                    <h5>Step 6: Moisturize</h5>
+                    <p>Richer night cream with ceramides and peptides</p>
+                </div>
+                <div class="routine-step">
+                    <h5>Step 7: Face Oil (Optional)</h5>
+                    <p>Seal everything in with facial oil if needed</p>
+                </div>
+            `;
+            
+            document.getElementById('weeklyRoutine').innerHTML = `
+                <div class="ingredient-card">
+                    <h5>Monday & Thursday: Clay Mask</h5>
+                    <p>Deep clean pores and control oil (15-20 minutes)</p>
+                </div>
+                <div class="ingredient-card">
+                    <h5>Wednesday & Sunday: Sheet Mask</h5>
+                    <p>Intensive hydration and brightening (15-20 minutes)</p>
+                </div>
+                <div class="ingredient-card">
+                    <h5>Saturday: At-Home Facial</h5>
+                    <p>Steam → Exfoliate → Mask → Massage → Full routine</p>
+                </div>
+                <div class="tip-box">
+                    <strong>💡 Pro Tip:</strong>
+                    Always patch test new products on your inner arm for 24-48 hours!
+                </div>
+            `;
+        }
+
+        function generatePage5(data, healthScore) {
+            document.getElementById('timelineContent').innerHTML = `
+                <div style="margin: 20px 0;">
+                    <h5 style="color: #0097A7; margin-bottom: 10px;">Week 1-2: Adjustment Period</h5>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 15%;">15%</div>
+                    </div>
+                    <p style="color: #555; margin-top: 8px;">Skin adjusts to new products. May experience purging if using actives. Stay consistent!</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h5 style="color: #0097A7; margin-bottom: 10px;">Week 3-4: Early Changes</h5>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 35%;">35%</div>
+                    </div>
+                    <p style="color: #555; margin-top: 8px;">First visible improvements: smoother texture, better hydration, slight glow increase.</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h5 style="color: #0097A7; margin-bottom: 10px;">Week 6-8: Noticeable Results</h5>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 60%;">60%</div>
+                    </div>
+                    <p style="color: #555; margin-top: 8px;">Clear improvements in skin tone, reduced issues, healthier appearance.</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h5 style="color: #0097A7; margin-bottom: 10px;">Week 10-12: Significant Transformation</h5>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%;">85%</div>
+                    </div>
+                    <p style="color: #555; margin-top: 8px;">Major improvements. Skin barrier fully repaired. Radiant, healthy skin!</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h5 style="color: #0097A7; margin-bottom: 10px;">3+ Months: Optimal Results</h5>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%;">100%</div>
+                    </div>
+                    <p style="color: #555; margin-top: 8px;">Maximum benefits achieved. Maintain routine for long-term health.</p>
+                </div>
+            `;
+            
+            document.getElementById('trackingTips').innerHTML = `
+                <ul style="list-style-position: inside; color: #555; line-height: 2;">
+                    <li>📸 Take weekly photos in same lighting</li>
+                    <li>📝 Keep a skincare journal</li>
+                    <li>💧 Track water intake - 2-3 liters daily</li>
+                    <li>😴 Monitor sleep - 7-9 hours</li>
+                    <li>🍎 Note diet changes and skin impact</li>
+                    <li>📊 Rate your skin weekly 1-10</li>
+                </ul>
+            `;
+            
+            document.getElementById('importantReminders').innerHTML = `
+                <div class="tip-box" style="background: #FFEBEE; border-color: #D32F2F;">
+                    <strong style="color: #C62828;">⚠️ Stop Using If:</strong>
+                    Severe redness, burning, swelling, or rash occurs. Consult dermatologist immediately!
+                </div>
+                
+                <div class="tip-box">
+                    <strong>💊 Consistency is Key:</strong>
+                    Results require 4-12 weeks. Don't switch products too quickly!
+                </div>
+                
+                <div class="tip-box" style="background: #E3F2FD; border-color: #1976D2;">
+                    <strong style="color: #0D47A1;">🌞 SPF is NON-NEGOTIABLE:</strong>
+                    UV damage reverses all progress. Wear SPF 50 daily!
+                </div>
+                
+                <div class="tip-box" style="background: #F3E5F5; border-color: #7B1FA2;">
+                    <strong style="color: #6A1B9A;">👨‍⚕️ When to See a Dermatologist:</strong>
+                    Persistent acne, severe rosacea, suspicious moles, no improvement after 3 months.
+                </div>
+                
+                <div style="background: linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%); padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center;">
+                    <h4 style="color: #00695C; margin-bottom: 10px;">🎯 Your Goal</h4>
+                    <p style="font-size: 1.5em; font-weight: bold; color: #0097A7; margin: 15px 0;">
+                        Reach ${Math.min(100, healthScore + 30)}% Skin Health
+                    </p>
+                    <p style="color: #555;">With consistent care, improve your score by 20-30 points in 3 months!</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
